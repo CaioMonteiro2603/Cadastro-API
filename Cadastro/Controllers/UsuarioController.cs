@@ -3,6 +3,7 @@ using Cadastro.Models;
 using Cadastro.Repository.Interface;
 using Cadastro.Services;
 using Cadastro.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +24,8 @@ namespace Cadastro.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<UsuarioResponseVM>>> FindAllAsync()
+        [Authorize(Roles = "Operador, Revisor")]
+        public async Task<ActionResult<IList<UsuarioResponseVM>>> FindAllAsync()
         {
             var usuario = await _usuarioRepository.FindAll();
 
@@ -38,6 +40,7 @@ namespace Cadastro.Controllers
         }
 
         [HttpGet("{id:int}")]
+        [Authorize(Roles = "Operador, Revisor")]
         public async Task<ActionResult<UsuarioResponseVM>> FindIdAsync(int id)
         {
             var findId = await _usuarioRepository.FindById(id);
@@ -53,6 +56,7 @@ namespace Cadastro.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult<UsuarioResponseVM>> Post([FromBody] UsuarioRequestVM usuarioRequestVM)
         {
             if(!ModelState.IsValid)
@@ -74,6 +78,7 @@ namespace Cadastro.Controllers
         }
 
         [HttpPut("{id:int}")]
+        [Authorize(Roles = "Operador, Revisor")]
         public async Task<ActionResult> Put([FromRoute] int id, [FromBody] UsuarioRequestVM usuarioRequestVM)
         {
             if(!ModelState.IsValid || (id != usuarioRequestVM.UsuarioId))
@@ -88,6 +93,7 @@ namespace Cadastro.Controllers
         }
 
         [HttpDelete("{id:int}")]
+        [Authorize(Roles = "Admin")]
         public async Task<ActionResult> Delete([FromRoute] int id)
         {
             if(id == 0)
@@ -107,6 +113,7 @@ namespace Cadastro.Controllers
 
         [HttpPost]
         [Route("Login")]
+        [AllowAnonymous]
         public async Task<ActionResult<LoginResponseVM>> Login([FromBody] LoginRequestVM loginRequestVM)
         {
             var loginUsuario = await _usuarioRepository.FindByEmailAndSenha(

@@ -34,6 +34,7 @@ namespace Cadastro
 
             #region injecao de dependencia 
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>(); 
             #endregion
 
             #region modelState
