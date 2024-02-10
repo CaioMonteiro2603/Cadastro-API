@@ -6,8 +6,12 @@ using Cadastro.Repository;
 using Cadastro.Repository.Interface;
 using Cadastro.ViewModel;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc.Versioning;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
 
 namespace Cadastro
@@ -35,6 +39,8 @@ namespace Cadastro
             #region injecao de dependencia 
             builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
             builder.Services.AddScoped<ICategoriaRepository, CategoriaRepository>(); 
+            builder.Services.AddScoped<IProdutoRepository, ProdutoRepository>();
+            
             #endregion
 
             #region modelState
@@ -92,6 +98,27 @@ namespace Cadastro
                 });
             #endregion
 
+            #region versionamento
+            builder.Services.AddApiVersioning(options =>
+            {
+                options.UseApiBehavior = false;
+                options.ReportApiVersions = true;
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.DefaultApiVersion = new ApiVersion(3, 0);
+                options.ApiVersionReader =
+                    ApiVersionReader.Combine(
+                        new HeaderApiVersionReader("x-api-version"),
+                        new QueryStringApiVersionReader(),
+                        new UrlSegmentApiVersionReader());
+            });
+
+            builder.Services.AddVersionedApiExplorer(setup => {
+                setup.GroupNameFormat = "'v'VVV";
+                setup.SubstituteApiVersionInUrl = true;
+            });
+
+            builder.Services.AddTransient<IConfigureOptions<SwaggerGenOptions>, ConfigureSwaggerOptions>();
+            #endregion
 
             var app = builder.Build();
 
