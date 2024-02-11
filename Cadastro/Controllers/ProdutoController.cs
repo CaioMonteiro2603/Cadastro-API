@@ -6,7 +6,10 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Cadastro.Controllers
 {
-    [Route("api/[controller]")]
+    [ApiVersion("1.0", Deprecated = true)]
+    [ApiVersion("2.0")]
+    [ApiVersion("3.0")]
+    [Route("api/v{version:apiVersion}/[controller]")]
     [ApiController]
     public class ProdutoController : ControllerBase
     {
@@ -27,7 +30,7 @@ namespace Cadastro.Controllers
                 DateTime.ParseExact(dataReferencia, "yyyy-MM-ddTHH:mm:ss.fffffff", null, System.Globalization.DateTimeStyles.RoundtripKind);
 
             var produtos = _produtoRepository.FindAll(data, tamanho);
-            var novaDataReferencia = produtos.LastOrDefault().DataCadastro.ToString("yyyy-MM-ddTHH:mm:ss.ffffffF");
+            var novaDataReferencia = produtos.LastOrDefault().DataCadastro.ToString("yyyy-MM-ddTHH:mm:ss.fffffff");
 
             var linkProximo = $"/api/produto?dataReferencia={novaDataReferencia}&tamanho={tamanho}"; 
 

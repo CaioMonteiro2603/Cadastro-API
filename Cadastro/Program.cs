@@ -1,4 +1,3 @@
-
 using AutoMapper;
 using Cadastro.Data;
 using Cadastro.Models;
@@ -13,6 +12,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text;
+using Swashbuckle.AspNetCore.SwaggerUI;
+using Microsoft.AspNetCore.Mvc.ApiExplorer;
 
 namespace Cadastro
 {
@@ -24,8 +25,6 @@ namespace Cadastro
 
             // Add services to the container.
 
-            builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -75,6 +74,16 @@ namespace Cadastro
             #endregion
 
             #region autenticacao
+
+            bool CustomLifetimeValidator(DateTime? notBefore, DateTime? expires, SecurityToken tokenToValidate, TokenValidationParameters @param)
+            {
+                if (expires != null)
+                {
+                    return expires > DateTime.UtcNow;
+                }
+                return false;
+            }
+
             var key = Encoding.ASCII.GetBytes(Settings.SECRET_TOKEN);
 
             builder.Services.AddAuthentication(a => {
@@ -122,13 +131,27 @@ namespace Cadastro
 
             var app = builder.Build();
 
+            var provider = app.Services.GetRequiredService<IApiVersionDescriptionProvider>();
             // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
-                app.UseSwaggerUI();
+
+                // Ajustando versionamento no Swagger
+                app.UseSwaggerUI(c =>
+                {
+                    foreach (var d in provider.ApiVersionDescriptions)
+                    {
+                        c.SwaggerEndpoint(
+                            $"/swagger/{d.GroupName}/swagger.json",
+                            d.GroupName.ToUpperInvariant());
+                    }
+
+                    c.DocExpansion(DocExpansion.List);
+                });
             }
 
+            app.UseApiVersioning();
             app.UseHttpsRedirection();
 
             app.UseAuthorization();
